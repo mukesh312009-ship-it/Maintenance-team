@@ -1,0 +1,22 @@
+{
+  "name": "smart-campus-management-system",
+  "version": "1.0.0",
+  "description": "Smart Campus Management System - Staff Biometric Attendance & Inter-College Event Resource Planning",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  },
+  "keywords": [
+    "campus-management",
+    "biometric-attendance",
+    "event-resource-planning",
+    "college-maintenance"
+  ],
+  "author": "Campus Maintenance Solutions",
+  "license": "ISC"
+}
