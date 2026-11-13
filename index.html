@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Campus Management System | Maintenance Department</title>
+  
+  <!-- Font & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/style.css">
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <div id="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-icon">
+          <i class="fas fa-university"></i>
+        </div>
+        <div class="brand-info">
+          <h2>Smart Campus</h2>
+          <p>Maintenance Operations</p>
+        </div>
+      </div>
+
+      <ul class="nav-menu">
+        <li class="nav-section-title">Central Operations</li>
+        <li>
+          <a class="nav-item active" data-tab="dashboard">
+            <i class="fas fa-th-large"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+
+        <li class="nav-section-title">Problem 1: Attendance</li>
+        <li>
+          <a class="nav-item" data-tab="attendance">
+            <i class="fas fa-user-check"></i>
+            <span>Staff Attendance</span>
+          </a>
+        </li>
+        <li>
+          <a class="nav-item" data-tab="biometric">
+            <i class="fas fa-fingerprint"></i>
+            <span>Biometric Gateway</span>
+            <span class="badge-pill">API</span>
+          </a>
+        </li>
+
+        <li class="nav-section-title">Problem 2: Event Logistics</li>
+        <li>
+          <a class="nav-item" data-tab="events">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Event Management</span>
+          </a>
+        </li>
+        <li>
+          <a class="nav-item" data-tab="calculator">
+            <i class="fas fa-calculator"></i>
+            <span>Resource Calculator</span>
+          </a>
+        </li>
+
+        <li class="nav-section-title">Field Management</li>
+        <li>
+          <a class="nav-item" data-tab="tasks">
+            <i class="fas fa-clipboard-list"></i>
+            <span>Maintenance Orders</span>
+          </a>
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <div class="user-card">
+          <div class="user-avatar" id="logged-user-avatar">SP</div>
+          <div class="user-details">
+            <div class="user-name" id="logged-user-name">Er. Suresh Patil</div>
+            <div class="user-role" id="logged-user-role">Maintenance Supervisor</div>
+          </div>
+          <button class="btn-action-icon" style="color: #cbd5e1;" onclick="App.logout()" title="Logout / Switch Account">
+            <i class="fas fa-sign-out-alt"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Wrapper -->
+    <div class="main-wrapper">
+      <!-- Top Sticky Header -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle Navigation">
+            <i class="fas fa-bars"></i>
+          </button>
+          <div class="page-title-area">
+            <h1 id="page-header-title">Maintenance Operations Dashboard</h1>
+            <p id="page-header-sub">Campus facility status, staff attendance overview & upcoming event resources</p>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <div class="status-badge-live">
+            <span class="live-pulse"></span>
+            <span id="campus-clock">Loading clock...</span>
+          </div>
+          <button class="header-btn header-btn-secondary" id="btn-quick-biometric">
+            <i class="fas fa-fingerprint"></i> Simulate Scan
+          </button>
+          <button class="header-btn" id="btn-quick-event">
+            <i class="fas fa-plus"></i> Plan Event
+          </button>
+        </div>
+      </header>
+
+      <!-- Content Body -->
+      <main class="content-body">
+
+        <!-- ========================================================
+             MODULE: CENTRAL MAINTENANCE DASHBOARD
+             ======================================================== -->
+        <section id="view-dashboard" class="module-view active">
+          <!-- Top KPI Stat Cards -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Total Staff</span>
+                <span class="stat-value" id="stat-total-staff">--</span>
+                <span class="stat-subtext" id="stat-att-sub">Active Department Roster</span>
+              </div>
+              <div class="stat-icon blue">
+                <i class="fas fa-users"></i>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Present Today</span>
+                <span class="stat-value" style="color: #059669;" id="stat-present-staff">--</span>
+                <span class="stat-subtext"><span id="stat-att-pct" style="font-weight: 700; color: #059669;">--%</span> Attendance Rate</span>
+              </div>
+              <div class="stat-icon green">
+                <i class="fas fa-user-check"></i>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Absent Today</span>
+                <span class="stat-value" style="color: #dc2626;" id="stat-absent-staff">--</span>
+                <span class="stat-subtext">Approved Leaves & Absence</span>
+              </div>
+              <div class="stat-icon red">
+                <i class="fas fa-user-times"></i>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Pending / Unchecked</span>
+                <span class="stat-value" style="color: #d97706;" id="stat-pending-staff">--</span>
+                <span class="stat-subtext">Biometric Punch Awaited</span>
+              </div>
+              <div class="stat-icon amber">
+                <i class="fas fa-clock"></i>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Upcoming Events</span>
+                <span class="stat-value" id="stat-upcoming-events">--</span>
+                <span class="stat-subtext">Inter-College Competitions</span>
+              </div>
+              <div class="stat-icon purple">
+                <i class="fas fa-calendar-check"></i>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Total Expected Guests</span>
+                <span class="stat-value" id="stat-total-participants">--</span>
+                <span class="stat-subtext">Students, Faculty & VIPs</span>
+              </div>
+              <div class="stat-icon blue">
+                <i class="fas fa-user-friends"></i>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Chairs Required (+10%)</span>
+                <span class="stat-value" style="color: #0284c7;" id="stat-total-chairs">--</span>
+                <span class="stat-subtext">With 10% Safety Buffer</span>
+              </div>
+              <div class="stat-icon blue">
+                <i class="fas fa-chair"></i>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Pending Staging Orders</span>
+                <span class="stat-value" style="color: #ea580c;" id="stat-pending-tasks">--</span>
+                <span class="stat-subtext">Active Maintenance Tasks</span>
+              </div>
+              <div class="stat-icon amber">
+                <i class="fas fa-clipboard-list"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Problem Identification Alert Banner -->
+          <div class="notice-box">
+            <i class="fas fa-info-circle"></i>
+            <div>
+              <div class="notice-title">College Maintenance Operations Center</div>
+              <div class="notice-desc">
+                Monitoring staff biometric attendance compliance and automating chair & table resource allocations for upcoming inter-college events.
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts Grid -->
+          <div class="charts-grid">
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title"><i class="fas fa-chart-line" style="color: var(--secondary-navy);"></i> 7-Day Attendance Trend</div>
+                  <div class="card-subtitle">Daily present vs absent staff compliance tracking</div>
+                </div>
+              </div>
+              <div class="card-body" style="height: 280px;">
+                <canvas id="chart-attendance-trend"></canvas>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title"><i class="fas fa-chart-bar" style="color: var(--secondary-navy);"></i> Staff by Department</div>
+                  <div class="card-subtitle">Today's active on-duty personnel</div>
+                </div>
+              </div>
+              <div class="card-body" style="height: 280px;">
+                <canvas id="chart-dept-attendance"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Split Two Columns: Upcoming Events & Pending Tasks -->
+          <div class="charts-grid">
+            <!-- Upcoming Events -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><i class="fas fa-calendar-alt" style="color: var(--secondary-navy);"></i> Upcoming Inter-College Events & Chairs Required</div>
+                <button class="btn btn-outline btn-sm" onclick="App.switchTab('events')">View All Events</button>
+              </div>
+              <div class="card-body" style="padding: 0;" id="dash-upcoming-events">
+                <!-- Injected via dashboard.js -->
+              </div>
+            </div>
+
+            <!-- Pending Maintenance Arrangements -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><i class="fas fa-tasks" style="color: var(--secondary-navy);"></i> Pending Maintenance Arrangements</div>
+                <button class="btn btn-outline btn-sm" onclick="App.switchTab('tasks')">Manage Tasks</button>
+              </div>
+              <div class="card-body" style="padding: 12px;" id="dash-pending-tasks">
+                <!-- Injected via dashboard.js -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Biometric Hardware Terminal Audit Stream -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title"><i class="fas fa-fingerprint" style="color: var(--secondary-navy);"></i> Live Biometric Terminal Hardware Stream</div>
+                <div class="card-subtitle">Real-time authorized hardware punch audit trail</div>
+              </div>
+              <button class="btn btn-outline btn-sm" onclick="App.switchTab('biometric')">
+                <i class="fas fa-network-wired"></i> Hardware Hub
+              </button>
+            </div>
+            <div class="table-responsive">
+              <table class="modern-table">
+                <thead>
+                  <tr>
+                    <th>Staff Name & ID</th>
+                    <th>Biometric Terminal</th>
+                    <th>Punch Type</th>
+                    <th>Terminal Timestamp</th>
+                    <th>Match Confidence</th>
+                  </tr>
+                </thead>
+                <tbody id="dash-biometric-audit">
+                  <!-- Injected via dashboard.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ========================================================
+             MODULE 1: STAFF ATTENDANCE MANAGEMENT (PROBLEM 1)
+             ======================================================== -->
+        <section id="view-attendance" class="module-view">
+          <!-- Summary Cards -->
+          <div class="stats-grid" style="grid-template-columns: repeat(5, 1fr);">
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Total Staff</span>
+                <span class="stat-value" id="att-sum-total">--</span>
+                <span class="stat-subtext">Active Personnel</span>
+              </div>
+              <div class="stat-icon blue"><i class="fas fa-id-badge"></i></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Present</span>
+                <span class="stat-value" style="color: #059669;" id="att-sum-present">--</span>
+                <span class="stat-subtext">Checked In</span>
+              </div>
+              <div class="stat-icon green"><i class="fas fa-check"></i></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Absent</span>
+                <span class="stat-value" style="color: #dc2626;" id="att-sum-absent">--</span>
+                <span class="stat-subtext">On Leave / Missing</span>
+              </div>
+              <div class="stat-icon red"><i class="fas fa-times"></i></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Not Checked In</span>
+                <span class="stat-value" style="color: #d97706;" id="att-sum-pending">--</span>
+                <span class="stat-subtext">Pending Punch</span>
+              </div>
+              <div class="stat-icon amber"><i class="fas fa-hourglass-half"></i></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Attendance %</span>
+                <span class="stat-value" style="color: #0284c7;" id="att-sum-pct">--%</span>
+                <span class="stat-subtext">Today's Turnout</span>
+              </div>
+              <div class="stat-icon blue"><i class="fas fa-percentage"></i></div>
+            </div>
+          </div>
+
+          <!-- Problem 1 Architecture Disclaimer Notice -->
+          <div class="notice-box">
+            <i class="fas fa-shield-alt"></i>
+            <div>
+              <div class="notice-title">Problem 1 Resolution & System Architecture</div>
+              <div class="notice-desc">
+                This dashboard enables the maintenance team to monitor daily staff attendance and detect missing biometric check-ins. 
+                <strong>Note:</strong> Manual attendance entry is provided for prototype overrides and leave recording; the system architecture features an authorized REST API endpoint ready for direct integration with college biometric devices.
+              </div>
+            </div>
+          </div>
+
+          <!-- Filters & Actions Bar -->
+          <div class="filter-bar">
+            <div class="filter-group">
+              <div class="search-input-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" id="att-search-input" class="form-control" placeholder="Search staff by name, ID or role...">
+              </div>
+
+              <select id="att-dept-filter" class="form-select">
+                <option value="All">All Departments</option>
+              </select>
+
+              <select id="att-status-filter" class="form-select">
+                <option value="All">All Statuses</option>
+                <option value="Present">Present</option>
+                <option value="Absent">Absent</option>
+                <option value="Not Checked In">Not Checked In</option>
+              </select>
+
+              <input type="date" id="att-date-picker" class="form-control" style="width: auto;">
+            </div>
+
+            <div class="filter-group">
+              <button class="btn btn-outline" id="btn-export-attendance">
+                <i class="fas fa-file-csv"></i> Export CSV
+              </button>
+              <button class="btn btn-outline" id="btn-print-attendance">
+                <i class="fas fa-print"></i> Print Roster
+              </button>
+              <button class="btn btn-primary" onclick="AttendanceModule.openAddStaffModal()">
+                <i class="fas fa-user-plus"></i> Add Staff
+              </button>
+            </div>
+          </div>
+
+          <!-- Attendance Table -->
+          <div class="card">
+            <div class="table-responsive">
+              <table class="modern-table">
+                <thead>
+                  <tr>
+                    <th>Staff ID</th>
+                    <th>Name & Designation</th>
+                    <th>Department</th>
+                    <th>Attendance Status</th>
+                    <th>Check In</th>
+                    <th>Check Out</th>
+                    <th>Verification Source</th>
+                    <th style="text-align: right;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="attendance-table-body">
+                  <!-- Injected via attendance.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ========================================================
+             MODULE 2: INTER-COLLEGE EVENT MANAGEMENT (PROBLEM 2)
+             ======================================================== -->
+        <section id="view-events" class="module-view">
+          <!-- Summary Cards -->
+          <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Upcoming Events</span>
+                <span class="stat-value" id="event-sum-upcoming">--</span>
+                <span class="stat-subtext">Inter-College Meets</span>
+              </div>
+              <div class="stat-icon purple"><i class="fas fa-trophy"></i></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Expected Participants</span>
+                <span class="stat-value" id="event-sum-participants">--</span>
+                <span class="stat-subtext">Students, Staff & Guests</span>
+              </div>
+              <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Total Chairs Needed</span>
+                <span class="stat-value" style="color: #0284c7;" id="event-sum-chairs">--</span>
+                <span class="stat-subtext">Includes 10% Extra Buffer</span>
+              </div>
+              <div class="stat-icon blue"><i class="fas fa-chair"></i></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Total Tables Needed</span>
+                <span class="stat-value" style="color: #059669;" id="event-sum-tables">--</span>
+                <span class="stat-subtext">Registration + Dais + Dining</span>
+              </div>
+              <div class="stat-icon green"><i class="fas fa-table"></i></div>
+            </div>
+          </div>
+
+          <!-- Notice Box -->
+          <div class="notice-box">
+            <i class="fas fa-lightbulb"></i>
+            <div>
+              <div class="notice-title">Problem 2 Resolution: Automated Resource Calculation</div>
+              <div class="notice-desc">
+                Solves resource estimation guesswork for inter-college competitions. For any event with Expected Students, Staff and Guests:
+                <strong>Total People = Students + Staff + Guests</strong> &bull; 
+                <strong>Extra Chairs = 10% Buffer</strong> &bull; 
+                <strong>Total Chairs = Total People + Extra Buffer</strong>.
+                Tables and student volunteers are calculated automatically.
+              </div>
+            </div>
+          </div>
+
+          <!-- Events Filter Bar -->
+          <div class="filter-bar">
+            <div class="filter-group">
+              <div class="search-input-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" id="event-search-input" class="form-control" placeholder="Search event by name, venue or college...">
+              </div>
+
+              <select id="event-status-filter" class="form-select">
+                <option value="All">All Statuses</option>
+                <option value="Planning">Planning</option>
+                <option value="Approved">Approved</option>
+                <option value="Setup In Progress">Setup In Progress</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <button class="btn btn-outline" onclick="App.switchTab('calculator')">
+                <i class="fas fa-calculator"></i> Resource Sandbox
+              </button>
+              <button class="btn btn-primary" onclick="EventsModule.openCreateModal()">
+                <i class="fas fa-plus"></i> Plan New Event
+              </button>
+            </div>
+          </div>
+
+          <!-- Events Grid -->
+          <div class="events-grid" id="events-cards-grid">
+            <!-- Injected via events.js -->
+          </div>
+        </section>
+
+        <!-- ========================================================
+             RESOURCE ESTIMATION SANDBOX
+             ======================================================== -->
+        <section id="view-calculator" class="module-view">
+          <div class="notice-box">
+            <i class="fas fa-calculator"></i>
+            <div>
+              <div class="notice-title">Maintenance Resource Estimation Sandbox</div>
+              <div class="notice-desc">
+                Experiment with attendee projections and buffer percentages before creating formal event requisitions. 
+                Adjust numbers below to see instant resource requirements for chairs, tables, and volunteers.
+              </div>
+            </div>
+          </div>
+
+          <!-- Preset Buttons -->
+          <div style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+            <span style="font-weight: 600; font-size: 13px; align-self: center; margin-right: 6px;">Load Scenario Preset:</span>
+            <button class="btn btn-outline btn-sm" data-calc-preset="workshop">
+              <i class="fas fa-chalkboard-teacher"></i> Tech Workshop (75)
+            </button>
+            <button class="btn btn-outline btn-sm" data-calc-preset="symposium">
+              <i class="fas fa-award"></i> Problem Statement Example: Symposium (250)
+            </button>
+            <button class="btn btn-outline btn-sm" data-calc-preset="hackathon">
+              <i class="fas fa-laptop-code"></i> 24h Hackathon (400)
+            </button>
+            <button class="btn btn-outline btn-sm" data-calc-preset="cultural">
+              <i class="fas fa-theater-masks"></i> Cultural Gala (700)
+            </button>
+          </div>
+
+          <div class="charts-grid">
+            <!-- Left: Inputs Card -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><i class="fas fa-sliders-h" style="color: var(--secondary-navy);"></i> Attendee Projections</div>
+              </div>
+              <div class="card-body">
+                <div class="form-group">
+                  <label>Expected Number of Students</label>
+                  <input type="number" id="calc-box-students" class="form-control" value="200" min="0">
+                  <div class="form-help">Participants from host and visiting colleges</div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Expected College Staff / Faculty</label>
+                    <input type="number" id="calc-box-staff" class="form-control" value="20" min="0">
+                  </div>
+                  <div class="form-group">
+                    <label>Expected VIP Guests / Judges</label>
+                    <input type="number" id="calc-box-guests" class="form-control" value="30" min="0">
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Safety Chair Buffer Percentage (%)</label>
+                  <input type="number" id="calc-box-buffer" class="form-control" value="10" min="0" max="50" step="1">
+                  <div class="form-help">Default is 10% extra chairs for overflow and last-minute attendees</div>
+                </div>
+
+                <div style="margin-top: 24px;">
+                  <button class="btn btn-primary" id="btn-calc-convert" style="width: 100%;">
+                    <i class="fas fa-calendar-plus"></i> Export & Plan Event with These Calculations
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Live Calculation Output -->
+            <div class="calc-display-card" style="margin-bottom: 0;">
+              <div class="calc-display-header">
+                <h3><i class="fas fa-clipboard-check"></i> Calculated Event Requirements</h3>
+                <span class="calc-formula-badge">Live Output</span>
+              </div>
+
+              <div class="calc-metrics-row" style="grid-template-columns: 1fr 1fr; margin-bottom: 16px;">
+                <div class="calc-metric-box">
+                  <div class="calc-metric-num" id="calc-out-people">250</div>
+                  <div class="calc-metric-desc">Total People Expected</div>
+                </div>
+                <div class="calc-metric-box">
+                  <div class="calc-metric-num" id="calc-out-extra">+25 (10%)</div>
+                  <div class="calc-metric-desc">Extra Buffer Chairs</div>
+                </div>
+              </div>
+
+              <div class="calc-metric-box" style="background: rgba(56, 189, 248, 0.25); border: 2px solid #38bdf8; margin-bottom: 16px;">
+                <div class="calc-metric-num" style="font-size: 32px; color: #ffffff;" id="calc-out-chairs">275</div>
+                <div class="calc-metric-desc" style="color: #ffffff; font-weight: bold; font-size: 13px;">Total Chairs Required to Deploy</div>
+                <div style="font-size: 11px; color: #bae6fd; margin-top: 4px;">Warehouse Requisition Total</div>
+              </div>
+
+              <div class="calc-metrics-row" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 16px;">
+                <div class="calc-metric-box">
+                  <div class="calc-metric-num" id="calc-out-tables">14</div>
+                  <div class="calc-metric-desc">Total Tables</div>
+                </div>
+                <div class="calc-metric-box">
+                  <div class="calc-metric-num" id="calc-out-volunteers">15</div>
+                  <div class="calc-metric-desc">Volunteers Req.</div>
+                </div>
+                <div class="calc-metric-box">
+                  <div class="calc-metric-num" id="calc-out-water">4 Units</div>
+                  <div class="calc-metric-desc">Water Dispensers</div>
+                </div>
+              </div>
+
+              <div style="background: rgba(255, 255, 255, 0.08); padding: 12px; border-radius: var(--radius-sm); font-size: 11.5px; line-height: 1.6;">
+                <strong>Table Staging Breakdown:</strong><br>
+                &bull; Registration Desks: <span id="calc-out-reg-tables">4</span> tables<br>
+                &bull; VIP Dais Stage: <span id="calc-out-dais-tables">2</span> tables<br>
+                &bull; Guest Hospitality: <span id="calc-out-guest-tables">4</span> tables<br>
+                &bull; Refreshments Counter: <span id="calc-out-food-tables">4</span> tables
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ========================================================
+             MODULE: MAINTENANCE WORK ORDERS & TASKS
+             ======================================================== -->
+        <section id="view-tasks" class="module-view">
+          <div class="filter-bar">
+            <div class="filter-group">
+              <select id="task-status-filter" class="form-select">
+                <option value="All">All Tasks</option>
+                <option value="Pending">Pending</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
+            <div>
+              <button class="btn btn-primary" onclick="TasksModule.openAddTaskModal()">
+                <i class="fas fa-plus"></i> New Maintenance Task
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="table-responsive">
+              <table class="modern-table">
+                <thead>
+                  <tr>
+                    <th style="width: 40px;">Done</th>
+                    <th>Maintenance Task / Arrangement Description</th>
+                    <th>Category</th>
+                    <th>Priority</th>
+                    <th>Assigned Technician</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="tasks-table-body">
+                  <!-- Injected via tasks.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ========================================================
+             MODULE: BIOMETRIC GATEWAY HUB (ARCHITECTURE READY)
+             ======================================================== -->
+        <section id="view-biometric" class="module-view">
+          <div class="notice-box">
+            <i class="fas fa-network-wired"></i>
+            <div>
+              <div class="notice-title">Authorized Biometric Device Gateway Hub</div>
+              <div class="notice-desc">
+                Architectural bridge connecting college optical and facial biometric hardware terminals with the Smart Campus Management System via an authenticated REST API. Use the simulator below to test live hardware punch synchronization.
+              </div>
+            </div>
+          </div>
+
+          <!-- Top Grid: Registered Devices & Hardware Simulator -->
+          <div class="charts-grid">
+            <!-- Registered Terminals -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><i class="fas fa-server" style="color: var(--secondary-navy);"></i> Registered Hardware Biometric Terminals</div>
+              </div>
+              <div class="card-body" style="display: flex; flex-direction: column; gap: 14px;" id="biometric-devices-list">
+                <!-- Injected via biometric.js -->
+              </div>
+            </div>
+
+            <!-- Hardware Biometric Punch Simulator -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><i class="fas fa-microchip" style="color: var(--secondary-navy);"></i> Biometric Hardware Punch Simulator</div>
+              </div>
+              <div class="card-body">
+                <form id="form-biometric-simulator">
+                  <div class="form-group">
+                    <label>Select Terminal Device</label>
+                    <select id="sim-device-select" class="form-select" required></select>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Staff Member to Scan</label>
+                    <select id="sim-staff-select" class="form-select" required></select>
+                  </div>
+
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Punch Type</label>
+                      <select id="sim-punch-type" class="form-select">
+                        <option value="CHECK_IN">CHECK_IN (Arrival)</option>
+                        <option value="CHECK_OUT">CHECK_OUT (Departure)</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label>Sensor Method</label>
+                      <select id="sim-verif-type" class="form-select">
+                        <option value="Fingerprint">Optical Fingerprint</option>
+                        <option value="Facial Recognition">AI Face Recognition</option>
+                        <option value="RFID Card">RFID Smart Card</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Biometric Match Confidence: <strong id="sim-confidence-val">99.4%</strong></label>
+                    <input type="range" id="sim-confidence-slider" min="80" max="100" step="0.1" value="99.4" class="form-control" style="padding: 0;">
+                  </div>
+
+                  <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+                    <i class="fas fa-broadcast-tower"></i> Transmit Biometric Hardware Scan
+                  </button>
+                </form>
+
+                <div class="terminal-box" id="sim-terminal-output" style="display: none;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Raw Hardware Biometric Logs Table -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fas fa-history" style="color: var(--secondary-navy);"></i> Hardware Biometric Raw Transaction Logs</div>
+            </div>
+            <div class="table-responsive">
+              <table class="modern-table">
+                <thead>
+                  <tr>
+                    <th>Log ID</th>
+                    <th>Device Terminal</th>
+                    <th>Staff Member</th>
+                    <th>Punch</th>
+                    <th>Hardware Timestamp</th>
+                    <th>Method</th>
+                    <th>Confidence</th>
+                  </tr>
+                </thead>
+                <tbody id="biometric-audit-table-body">
+                  <!-- Injected via biometric.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Developer & College IT Integration Documentation -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fas fa-code" style="color: var(--secondary-navy);"></i> Authorized API Specifications for Hardware Vendors</div>
+            </div>
+            <div class="card-body">
+              <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
+                College IT and biometric vendors (ZKTeco, eSSL, Suprema, Realtime) can configure automated webhooks or push services to send punches directly to our authenticated REST endpoint:
+              </p>
+              <pre class="terminal-box" id="biometric-specs-console"></pre>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODALS
+       ======================================================== -->
+
+  <!-- Modal: Manual Attendance Override (Prototype) -->
+  <div class="modal-backdrop" id="modal-manual-attendance">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3><i class="fas fa-user-edit" style="color: var(--secondary-navy);"></i> Manual Attendance Override</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <form id="form-manual-attendance">
+        <div class="modal-body">
+          <div class="notice-box warning" style="margin-bottom: 16px;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div>
+              <strong>Prototype Administrative Override:</strong>
+              Manual attendance entry will be tagged as <em>"Manual Override"</em> in the system audit logs, distinguishing it from authorized biometric device verification.
+            </div>
+          </div>
+
+          <input type="hidden" id="manual-staff-id">
+          
+          <div class="form-group">
+            <label>Staff Member</label>
+            <div id="manual-staff-name" style="font-size: 14px; font-weight: 700; color: var(--primary-navy); padding: 8px 12px; background: #f8fafc; border-radius: var(--radius-sm); border: 1px solid var(--border-color);"></div>
+          </div>
+
+          <div class="form-group">
+            <label>Attendance Status</label>
+            <select id="manual-status" class="form-select" required>
+              <option value="Present">Present</option>
+              <option value="Absent">Absent</option>
+              <option value="Not Checked In">Not Checked In</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Check In Time</label>
+              <input type="text" id="manual-checkin" class="form-control" placeholder="e.g. 08:45 AM">
+            </div>
+            <div class="form-group">
+              <label>Check Out Time (Optional)</label>
+              <input type="text" id="manual-checkout" class="form-control" placeholder="e.g. 05:00 PM">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Supervisor Remarks / Reason for Manual Entry</label>
+            <textarea id="manual-remarks" class="form-control" rows="2" placeholder="e.g. Biometric thumb scan unreadable, on-duty approval, sick leave..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-modal-close>Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Attendance Override</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add New Staff Member -->
+  <div class="modal-backdrop" id="modal-add-staff">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3><i class="fas fa-user-plus" style="color: var(--secondary-navy);"></i> Add Staff Member</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <form id="form-add-staff">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Staff ID</label>
+              <input type="text" id="add-staff-id" class="form-control" required placeholder="e.g. STF-121">
+            </div>
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" id="add-staff-name" class="form-control" required placeholder="e.g. Ramesh V. Kulkarni">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Department</label>
+              <select id="add-staff-dept" class="form-select" required>
+                <option value="Maintenance & Housekeeping">Maintenance & Housekeeping</option>
+                <option value="Electrical & HVAC">Electrical & HVAC</option>
+                <option value="Civil & Carpentry">Civil & Carpentry</option>
+                <option value="IT Infrastructure & Audio/Visual">IT Infrastructure & Audio/Visual</option>
+                <option value="Campus Security">Campus Security</option>
+                <option value="Administrative Office">Administrative Office</option>
+                <option value="Computer Science & Engg">Computer Science & Engg</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Designation / Role</label>
+              <input type="text" id="add-staff-desig" class="form-control" required placeholder="e.g. Senior Carpenter">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Email Address</label>
+              <input type="email" id="add-staff-email" class="form-control" placeholder="name@campus.edu">
+            </div>
+            <div class="form-group">
+              <label>Phone Number</label>
+              <input type="text" id="add-staff-phone" class="form-control" placeholder="+91 98230 00000">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Work Shift</label>
+            <select id="add-staff-shift" class="form-select">
+              <option value="Morning (07:30 AM - 03:30 PM)">Morning (07:30 AM - 03:30 PM)</option>
+              <option value="General (09:00 AM - 05:00 PM)" selected>General (09:00 AM - 05:00 PM)</option>
+              <option value="Evening (01:00 PM - 09:00 PM)">Evening (01:00 PM - 09:00 PM)</option>
+              <option value="Security Shift (06:00 AM - 02:00 PM)">Security Shift (06:00 AM - 02:00 PM)</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-modal-close>Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Staff Member</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Plan / Edit Inter-College Event -->
+  <div class="modal-backdrop" id="modal-event-plan">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <h3 id="event-modal-title"><i class="fas fa-calendar-plus" style="color: var(--secondary-navy);"></i> Plan Inter-College Event</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <form id="form-event-plan">
+        <div class="modal-body">
+          <input type="hidden" id="event-modal-id">
+
+          <div class="form-row">
+            <div class="form-group" style="grid-column: span 2;">
+              <label>Event Name</label>
+              <input type="text" id="event-name" class="form-control" required placeholder="e.g. Inter-College TechSymposium 2026">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Event Date</label>
+              <input type="date" id="event-date" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label>Event Timing</label>
+              <input type="text" id="event-time" class="form-control" placeholder="e.g. 09:30 AM - 04:30 PM">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Event Type</label>
+              <select id="event-type" class="form-select">
+                <option value="Symposium & Tech Paper Presentation">Symposium & Tech Paper Presentation</option>
+                <option value="Hackathon & Coding Competition">Hackathon & Coding Competition</option>
+                <option value="Cultural Fest & Performing Arts">Cultural Fest & Performing Arts</option>
+                <option value="Sports Meet & Tournament">Sports Meet & Tournament</option>
+                <option value="National Conference & Seminar">National Conference & Seminar</option>
+                <option value="Project Exhibition & RoboWars">Project Exhibition & RoboWars</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Venue Selection</label>
+              <select id="event-venue" class="form-select" required>
+                <option value="Main College Auditorium" data-capacity="800">Main College Auditorium (Cap: 800)</option>
+                <option value="Central IT Lab Complex & Seminar Hall A" data-capacity="500">Central IT Lab Complex & Hall A (Cap: 500)</option>
+                <option value="Seminar Hall B (Management Wing)" data-capacity="120">Seminar Hall B (Cap: 120)</option>
+                <option value="Open Air Amphitheatre" data-capacity="1500">Open Air Amphitheatre (Cap: 1500)</option>
+                <option value="Indoor Sports Complex & Gymnasium" data-capacity="400">Indoor Sports Complex (Cap: 400)</option>
+                <option value="Executive Boardroom & Conference Hall" data-capacity="50">Executive Boardroom (Cap: 50)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Participating Colleges (External & Internal)</label>
+            <input type="text" id="event-colleges" class="form-control" placeholder="e.g. COEP Technological Univ, VJTI Mumbai, PICT Pune, MIT-WPU">
+            <div class="form-help">Enter names of other institutions participating</div>
+          </div>
+
+          <!-- Attendee Projections for Automatic Calculation -->
+          <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 16px;">
+            <div style="font-weight: 700; color: var(--primary-navy); margin-bottom: 10px;">
+              <i class="fas fa-calculator" style="color: var(--secondary-navy);"></i> Attendee Projections & Automatic Formula
+            </div>
+            
+            <div class="form-row" style="grid-template-columns: repeat(4, 1fr);">
+              <div class="form-group">
+                <label>Expected Students</label>
+                <input type="number" id="event-students" class="form-control" value="200" min="0" required>
+              </div>
+              <div class="form-group">
+                <label>Expected Staff</label>
+                <input type="number" id="event-staff" class="form-control" value="20" min="0" required>
+              </div>
+              <div class="form-group">
+                <label>Expected Guests / VIPs</label>
+                <input type="number" id="event-guests" class="form-control" value="30" min="0" required>
+              </div>
+              <div class="form-group">
+                <label>Buffer % (Chairs)</label>
+                <input type="number" id="event-buffer" class="form-control" value="10" min="0" max="50" step="1">
+              </div>
+            </div>
+
+            <!-- Live Calculation Preview -->
+            <div class="calc-metrics-row" style="grid-template-columns: repeat(5, 1fr); background: var(--secondary-navy); border-radius: var(--radius-sm); padding: 10px; color: white;">
+              <div>
+                <div style="font-size: 16px; font-weight: 800; color: #38bdf8;" id="calc-prev-total-people">250</div>
+                <div style="font-size: 10px; color: #cbd5e1;">Total People</div>
+              </div>
+              <div>
+                <div style="font-size: 16px; font-weight: 800; color: #38bdf8;" id="calc-prev-extra-chairs">+25 (10%)</div>
+                <div style="font-size: 10px; color: #cbd5e1;">Buffer Chairs</div>
+              </div>
+              <div style="background: rgba(255, 255, 255, 0.15); padding: 4px; border-radius: 4px;">
+                <div style="font-size: 18px; font-weight: 800; color: #ffffff;" id="calc-prev-total-chairs">275</div>
+                <div style="font-size: 10px; color: #bae6fd; font-weight: bold;">TOTAL CHAIRS</div>
+              </div>
+              <div>
+                <div style="font-size: 16px; font-weight: 800; color: #38bdf8;" id="calc-prev-tables">14</div>
+                <div style="font-size: 10px; color: #cbd5e1;">Tables Req.</div>
+              </div>
+              <div>
+                <div style="font-size: 16px; font-weight: 800; color: #38bdf8;" id="calc-prev-volunteers">15</div>
+                <div style="font-size: 10px; color: #cbd5e1;">Volunteers</div>
+              </div>
+            </div>
+
+            <div id="calc-venue-warning" style="display: none; margin-top: 10px;"></div>
+          </div>
+
+          <div class="form-group">
+            <label>Additional Maintenance & Equipment Requirements</label>
+            <textarea id="event-requirements" class="form-control" rows="2" placeholder="e.g. 4 wireless mics, podium with light, 3 water dispensers, stage floral arrangements, power strips..."></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Event Convener / Contact</label>
+              <input type="text" id="event-organizer" class="form-control" placeholder="Prof. Name & Mobile Number">
+            </div>
+            <div class="form-group">
+              <label>Planning Status</label>
+              <select id="event-status" class="form-select">
+                <option value="Planning">Planning</option>
+                <option value="Approved">Approved</option>
+                <option value="Setup In Progress">Setup In Progress</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-modal-close>Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Event Plan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Event Resource Breakdown Details -->
+  <div class="modal-backdrop" id="modal-event-detail">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <h3><i class="fas fa-file-invoice" style="color: var(--secondary-navy);"></i> Resource Requirement Breakdown</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body" id="detail-modal-content">
+        <!-- Injected via events.js -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" data-modal-close>Close</button>
+        <button type="button" class="btn btn-primary" onclick="EventsModule.printResourceSlip(EventsModule.currentEvent?.id)">
+          <i class="fas fa-print"></i> Print Work Order Slip
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add Maintenance Task -->
+  <div class="modal-backdrop" id="modal-add-task">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3><i class="fas fa-clipboard-check" style="color: var(--secondary-navy);"></i> New Maintenance Work Order</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <form id="form-add-task">
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Task Description / Arrangement Required</label>
+            <input type="text" id="task-title" class="form-control" required placeholder="e.g. Deploy 275 chairs in Main Auditorium">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Category</label>
+              <select id="task-category" class="form-select">
+                <option value="Seating">Seating & Furniture</option>
+                <option value="Electrical">Electrical & Power</option>
+                <option value="Audio/Visual">Audio / Visual & Mics</option>
+                <option value="Housekeeping">Housekeeping & Water</option>
+                <option value="Civil">Civil & Staging</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Priority</label>
+              <select id="task-priority" class="form-select">
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+                <option value="Urgent">Urgent</option>
+                <option value="Low">Low</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Assigned To</label>
+              <input type="text" id="task-assigned" class="form-control" placeholder="e.g. Mahesh Kadam (Carpentry)">
+            </div>
+            <div class="form-group">
+              <label>Due Date</label>
+              <input type="date" id="task-due-date" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Notes / Setup Instructions</label>
+            <textarea id="task-notes" class="form-control" rows="2" placeholder="Specific location, layout details, cable paths..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-modal-close>Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Work Order</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Quick Biometric Scanner Simulator -->
+  <div class="modal-backdrop" id="modal-biometric-simulator">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3><i class="fas fa-fingerprint" style="color: var(--secondary-navy);"></i> Simulate Biometric Hardware Scan</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <form id="form-modal-biometric-simulator">
+        <div class="modal-body">
+          <div class="notice-box">
+            <i class="fas fa-microchip"></i>
+            <div>
+              <strong>Hardware Simulation:</strong> This tests authorized biometric hardware integration by sending an authenticated POST request to <code>/api/biometric/sync</code>.
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Select Biometric Terminal Device</label>
+            <select id="modal-sim-device" class="form-select" required>
+              <option value="BIO-GATE-01" data-key="BIO_KEY_GATE01_SECURE">Main Campus Gate Terminal (BIO-GATE-01)</option>
+              <option value="BIO-ADMIN-02" data-key="BIO_KEY_ADMIN02_SECURE">Admin Block Ground Floor Scanner (BIO-ADMIN-02)</option>
+              <option value="BIO-MAINT-03" data-key="BIO_KEY_MAINT03_SECURE">Maintenance & Workshop Terminal (BIO-MAINT-03)</option>
+              <option value="BIO-AUDI-04" data-key="BIO_KEY_AUDI04_SECURE">Auditorium Stage Entrance Terminal (BIO-AUDI-04)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Staff Member to Scan</label>
+            <select id="modal-sim-staff" class="form-select" required></select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Punch Action</label>
+              <select id="modal-sim-punch-type" class="form-select">
+                <option value="CHECK_IN">CHECK_IN (Arrival)</option>
+                <option value="CHECK_OUT">CHECK_OUT (Departure)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Biometric Sensor</label>
+              <select id="modal-sim-verif-type" class="form-select">
+                <option value="Fingerprint">Optical Fingerprint Sensor</option>
+                <option value="Facial Recognition">AI Face Recognition Camera</option>
+                <option value="RFID Card">RFID Proximity Card</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Match Confidence Score: <strong id="modal-sim-conf-label">99.4%</strong></label>
+            <input type="range" id="modal-sim-conf-slider" min="80" max="100" step="0.1" value="99.4" class="form-control" style="padding: 0;">
+          </div>
+
+          <div class="terminal-box" id="modal-sim-terminal" style="display: none;"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-modal-close>Close</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-broadcast-tower"></i> Transmit Hardware Punch
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Notification Toast Container -->
+  <div id="toast-container"></div>
+
+  <!-- Print Container (rendered only during browser print) -->
+  <div id="printable-area"></div>
+
+  <!-- App Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/attendance.js"></script>
+  <script src="js/events.js"></script>
+  <script src="js/calculator.js"></script>
+  <script src="js/tasks.js"></script>
+  <script src="js/biometric.js"></script>
+
+</body>
+</html>

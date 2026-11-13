@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff & Maintenance Portal Login | Smart Campus</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 460px;
+      background: #ffffff;
+      border-radius: var(--radius-lg);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+    }
+
+    .login-header {
+      background: #0f172a;
+      color: white;
+      padding: 32px 28px;
+      text-align: center;
+    }
+
+    .login-brand-icon {
+      width: 52px;
+      height: 52px;
+      background: linear-gradient(135deg, #2563eb, #1e3a8a);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 14px auto;
+      font-size: 24px;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    }
+
+    .login-body {
+      padding: 32px 28px;
+    }
+
+    .demo-accounts {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .demo-chip {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 11.5px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      transition: all var(--transition-fast);
+    }
+
+    .demo-chip:hover {
+      background: #e2e8f0;
+      border-color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <div class="login-header">
+      <div class="login-brand-icon">
+        <i class="fas fa-university"></i>
+      </div>
+      <h2 style="font-size: 20px; font-weight: 800;">Smart Campus Management</h2>
+      <p style="font-size: 12px; color: #94a3b8; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Maintenance Department Portal</p>
+    </div>
+
+    <div class="login-body">
+      <form id="login-form">
+        <div class="form-group">
+          <label>Username or College Email</label>
+          <div class="search-input-wrapper">
+            <i class="fas fa-user"></i>
+            <input type="text" id="login-username" class="form-control" required value="maintenance" placeholder="admin@campus.edu or maintenance">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Password</label>
+          <div class="search-input-wrapper">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="login-password" class="form-control" required value="maint123" placeholder="••••••••">
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 14px; margin-top: 8px;">
+          <i class="fas fa-sign-in-alt"></i> Access Maintenance Portal
+        </button>
+      </form>
+
+      <!-- Quick Fill Demonstration Credentials -->
+      <div class="demo-accounts">
+        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 700; margin-bottom: 10px;">
+          Quick Demo Credentials (Click to Select)
+        </div>
+
+        <div class="demo-chip" onclick="quickFill('maintenance', 'maint123')">
+          <div>
+            <strong>Er. Suresh Patil</strong> &bull; Chief Maintenance Supervisor
+            <div style="color: var(--text-muted);">maintenance / maint123</div>
+          </div>
+          <i class="fas fa-arrow-right" style="color: var(--text-muted);"></i>
+        </div>
+
+        <div class="demo-chip" onclick="quickFill('admin', 'admin123')">
+          <div>
+            <strong>Dr. Ramesh Sharma</strong> &bull; Dean of Infrastructure
+            <div style="color: var(--text-muted);">admin / admin123</div>
+          </div>
+          <i class="fas fa-arrow-right" style="color: var(--text-muted);"></i>
+        </div>
+
+        <div class="demo-chip" onclick="quickFill('coordinator', 'events123')">
+          <div>
+            <strong>Prof. Sunita Deshmukh</strong> &bull; Event Convener
+            <div style="color: var(--text-muted);">coordinator / events123</div>
+          </div>
+          <i class="fas fa-arrow-right" style="color: var(--text-muted);"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="js/api.js"></script>
+  <script>
+    function quickFill(user, pass) {
+      document.getElementById('login-username').value = user;
+      document.getElementById('login-password').value = pass;
+    }
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const user = document.getElementById('login-username').value.trim();
+      const pass = document.getElementById('login-password').value.trim();
+
+      try {
+        const res = await API.login(user, pass);
+        if (res.success) {
+          localStorage.setItem('campus_user', JSON.stringify(res.user));
+          window.location.href = 'index.html';
+        }
+      } catch (err) {
+        alert(err.message || 'Login failed. Please verify credentials.');
+      }
+    });
+  </script>
+</body>
+</html>
